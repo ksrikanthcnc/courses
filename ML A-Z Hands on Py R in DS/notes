@@ -1,0 +1,3 @@
+Most regressors do Featur Scaling inherently
+Dummy variable trap is because together they have fake influence on prediction
+Lesser P value means more significant. Usual threshold is 5%
