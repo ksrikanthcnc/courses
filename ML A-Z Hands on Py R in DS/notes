@@ -1,3 +1,4 @@
-Most regressors do Featur Scaling inherently
+Most (linear,multi,poly)regressors do Feature Scaling inherently (not SVR)
 Dummy variable trap is because together they have fake influence on prediction
 Lesser P value means more significant. Usual threshold is 5%
+R-Squared is biased (more variables increase R-Squared), so use Adjusted R-Squared which has counter-measure for number of new variables

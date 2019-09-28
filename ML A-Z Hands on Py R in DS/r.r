@@ -16,7 +16,7 @@ data$colName = factor(data$colName,
 # Splitting into training and testing
 library(caTools)
 set.seed(123)
-split = sample.split(data$goal, SplitRatio = 0.8)
+split = sample.split(data$goal, SplitRatio = 0.8) #SplitRation = % in training
 training_set = subset(data, split == TRUE)
 test_set = subset(data, split == FALSE)
 
@@ -63,11 +63,69 @@ dataset$Level4 = dataset$Level^4
 poly_reg = lm(formula = Salary ~ .,
               data = dataset)
 
-# Visualising the Regression Model results (for higher resolution and smoother curve)
+# Visualising the poly Regression Model results (for higher resolution and smoother curve)
 x_grid = seq(min(dataset$Level), max(dataset$Level), 0.1)
-# normal visuaizin with x_grid instead of x
+# normal visuaizin with x_grid instead of x in geom_line
 
 # SVR
 library(e1071)
 regressor=svm(formula=Salary~. ,
-              data=dataset ,type='eps-regression' )#type=eps -> for regression
+              data=dataset,
+              type='eps-regression',
+              kernel = 'radial')
+
+# Decision Tree Regression
+library(rpart)
+regressor = rpart(formula = Salary ~ .,
+                  data = dataset,
+                  control = rpart.control(minsplit = 1))
+# Plotting the tree
+plot(regressor)
+text(regressor)
+
+library(randomForest)
+set.seed(1234)
+regressor = randomForest(x = dataset[1], #using [ ] gives a data frame
+                         y = dataset$Salary, #using $ sign gives vector
+                         ntree = 20000)
+
+# Classification ----------------------------------------------------------------------------
+# Logistic Regression
+classifier = glm(formula = Purchased ~ .,
+                 family = binomial, #for logistic regression
+                 data = training_set)
+
+# Predicting the Test set results
+prob_pred = predict(classifier, type = 'response', newdata = test_set[-3])
+y_pred = ifelse(prob_pred > 0.5, 1, 0)
+
+# Making the Confusion Matrix
+cm = table(test_set[, 3], y_pred > 0.5)
+
+# Visualising the Training set results
+library(ElemStatLearn)
+set = training_set
+X1 = seq(min(set[, 1]) - 1, max(set[, 1]) + 1, by = 0.01)
+X2 = seq(min(set[, 2]) - 1, max(set[, 2]) + 1, by = 0.01)
+grid_set = expand.grid(X1, X2)
+colnames(grid_set) = c('Age', 'EstimatedSalary')
+prob_set = predict(classifier, type = 'response', newdata = grid_set)
+y_grid = ifelse(prob_set > 0.5, 1, 0)
+plot(set[, -3],
+     main = 'Logistic Regression (Training set)',
+     xlab = 'Age', ylab = 'Estimated Salary',
+     xlim = range(X1), ylim = range(X2))
+contour(X1, X2, matrix(as.numeric(y_grid), length(X1), length(X2)), add = TRUE)
+points(grid_set, pch = '.', col = ifelse(y_grid == 1, 'springgreen3', 'tomato'))
+points(set, pch = 21, bg = ifelse(set[, 3] == 1, 'green4', 'red3'))
+
+# Fitting K-NN to the Training set and Predicting the Test set results
+library(class)
+y_pred = knn(train = training_set[, -3],
+             test = test_set[, -3],
+             cl = training_set[, 3],
+             k = 5,
+             prob = TRUE)
+# to plot, use y_grid = knn(...) model
+
+
