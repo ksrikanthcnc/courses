@@ -1,6 +1,6 @@
 # Pre-Process ----------------------------------------------------------------------
 # Importing dataset
-data = read.csv('data.csv')
+data = read.csv('data.csv') # '=' r '<-'
 data_subset = data[, 2:3]
 
 # Missing data
@@ -90,6 +90,7 @@ regressor = randomForest(x = dataset[1], #using [ ] gives a data frame
                          ntree = 20000)
 
 # Classification ----------------------------------------------------------------------------
+# Probably needs feature scaling
 # Logistic Regression
 classifier = glm(formula = Purchased ~ .,
                  family = binomial, #for logistic regression
@@ -127,5 +128,72 @@ y_pred = knn(train = training_set[, -3],
              k = 5,
              prob = TRUE)
 # to plot, use y_grid = knn(...) model
+
+# Fitting SVM to the Training set
+library(e1071)
+classifier = svm(formula = Purchased ~ .,
+                 data = training_set,
+                 type = 'C-classification',
+                 kernel = 'linear')  # kernel = 'radial',... for non-linear guassian
+
+# Naive Bayes
+# Might need encoding(factor-ing), doesn't by default
+library(e1071)
+classifier = naiveBayes(x = training_set[-3],
+                        y = training_set$Purchased)
+
+# Decision Tree
+library(rpart)
+classifier = rpart(formula = Purchased ~ .,
+                   data = training_set)
+y_pred = predict(classifier, newdata = test_set[-3], type = 'class') # 'type' parameter to directly get class
+plot(classifier)
+text(classifier)
+
+# Random Forest
+library(randomForest)
+classifier = randomForest(x = training_set[-3],
+                          y = training_set$Purchased,
+                          ntree = 500)
+
+# Clustering ----------------------------------------------------------------------------------
+# K-Means
+wcss = vector()
+for (i in 1:10) wcss[i] = sum(kmeans(dataset, i)$withinss)
+plot(1:10,
+     wcss,
+     type = 'b',
+     main = paste('The Elbow Method'),
+     xlab = 'Number of clusters',
+     ylab = 'WCSS')
+
+# Fitting K-Means to the dataset
+kmeans = kmeans(x = dataset, centers = 5)
+y_kmeans = kmeans$cluster
+
+# Visualising the clusters
+library(cluster)
+clusplot(dataset,
+         y_kmeans,
+         lines = 0,
+         shade = TRUE,
+         color = TRUE,
+         labels = 2,
+         plotchar = FALSE,
+         span = TRUE,
+         main = paste('Clusters of customers'),
+         xlab = 'Annual Income',
+         ylab = 'Spending Score')
+
+# Using the dendrogram to find the optimal number of clusters
+dendrogram = hclust(d = dist(dataset, method = 'euclidean'), method = 'ward.D')
+plot(dendrogram,
+     main = paste('Dendrogram'),
+     xlab = 'Customers',
+     ylab = 'Euclidean distances')
+
+# Fitting Hierarchical Clustering to the dataset
+hc = hclust(d = dist(dataset, method = 'euclidean'), method = 'ward.D')
+y_hc = cutree(hc, 5)
 
 

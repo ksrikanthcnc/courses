@@ -63,6 +63,7 @@ plt.show()
 import statsmodel.formula.api as sm
 X = np.append(arr = np.ones((no_of_cols, 1)).astype(int), values = X, axis = 1)
 # Repeat by deleting (one highest)column in X_opt whose P value in summary is > predefined threshold (5%)
+# todo automate this
 X_opt = X[: [0, 1, 2, 3, 4]]
 regressor_OLS = sm.OLS(endog = y, exog = X_opt).fit()
 regressor_OLS.summary()
@@ -95,6 +96,7 @@ from sklearn.ensemble import RandomForestRegressor
 regressor = RandomForestRegressor(n_estimators = 10, random_state = 0)
 
 # Classification ---------------------------------------------------------------------------
+# Probably needs feature scaling
 # Fitting Logistic Regression to the Training set
 from sklearn.linear_model import LogisticRegression
 classifier = LogisticRegression(random_state = 0)
@@ -125,6 +127,59 @@ plt.show()
 from sklearn.neighbors import KNeighborsClassifier
 classifier = KNeighborsClassifier(n_neighbors = 5, metric = 'minkowski', p = 2)
 classifier.fit(X_train, y_train)
+
+# Fitting SVM to the Training set
+from sklearn.svm import SVC
+classifier = SVC(kernel = 'linear', random_state = 0) # kernel = 'rbf',... for non-linear guassian
+
+# Fitting Naive Bayes to the Training set
+from sklearn.naive_bayes import GaussianNB
+classifier = GaussianNB()
+
+# Fitting Decision Tree Classification to the Training set
+from sklearn.tree import DecisionTreeClassifier
+classifier = DecisionTreeClassifier(criterion = 'entropy', random_state = 0)
+
+# Fitting Random Forest Classification to the Training set
+from sklearn.ensemble import RandomForestClassifier
+classifier = RandomForestClassifier(n_estimators = 10, criterion = 'entropy', random_state = 0)
+
+# Clustering ----------------------------------------------------------------------------------
+# K-Means
+from sklearn.cluster import KMeans
+# To find optimal number of clusters
+# todo fetch optimal clusters automatically
+wcss = []
+for i in range(1, 11):
+    kmeans = KMeans(n_clusters = i, init = 'k-means++', random_state = 42)
+    kmeans.fit(X)
+    wcss.append(kmeans.inertia_)#within cluster sum of squares
+plt.plot(range(1, 11), wcss)
+plt.show()
+
+# Fitting K-Means to the dataset
+kmeans = KMeans(n_clusters = 5, init = 'k-means++', random_state = 42)
+y_kmeans = kmeans.fit_predict(X)
+
+# Visualising the clusters (2D)
+plt.scatter(X[y_kmeans == 0, 0], X[y_kmeans == 0, 1], s = 100, c = 'red', label = 'Careful') #y_kmeans == 0, 1   =>o-index and 1 = value
+plt.scatter(X[y_kmeans == 1, 0], X[y_kmeans == 1, 1], s = 100, c = 'blue', label = 'Standard')
+plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], s = 300, c = 'yellow', label = 'Centroids') # only of kmeans not for HC
+plt.legend()
+plt.show()
+
+# Using the dendrogram to find the optimal number of clusters
+import scipy.cluster.hierarchy as sch
+dendrogram = sch.dendrogram(sch.linkage(X, method = 'ward')) #Algorithm of hirachical clustering 
+plt.title('Dendrogram')
+plt.xlabel('Customers')
+plt.ylabel('Euclidean distances')
+plt.show()
+
+# Fitting Hierarchical Clustering to the dataset
+from sklearn.cluster import AgglomerativeClustering
+hc = AgglomerativeClustering(n_clusters = 5, affinity = 'euclidean', linkage = 'ward') #distance to do the linkage 
+y_hc = hc.fit_predict(X)
 
 
 
