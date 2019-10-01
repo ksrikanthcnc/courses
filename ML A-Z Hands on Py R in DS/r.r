@@ -1,7 +1,9 @@
 # Pre-Process ----------------------------------------------------------------------
 # Importing dataset
-data = read.csv('data.csv') # '=' r '<-'
+data = read.csv('data.csv') # '=' r '<-'; 'header = TRUE/FALSE'
 data_subset = data[, 2:3]
+# To re-arrange columns
+# data = data[c(2, 3, 1)]
 
 # Missing data
 data$colName = ifelse(is.na(data$colName),
@@ -117,7 +119,7 @@ plot(set[, -3],
      xlab = 'Age', ylab = 'Estimated Salary',
      xlim = range(X1), ylim = range(X2))
 contour(X1, X2, matrix(as.numeric(y_grid), length(X1), length(X2)), add = TRUE)
-points(grid_set, pch = '.', col = ifelse(y_grid == 1, 'springgreen3', 'tomato'))
+points(grid_set, pch = '.', col = ifelse(y_grid == 1, 'springgreen3', 'tomato')) # mre colours for more classes
 points(set, pch = 21, bg = ifelse(set[, 3] == 1, 'green4', 'red3'))
 
 # Fitting K-NN to the Training set and Predicting the Test set results
@@ -196,4 +198,194 @@ plot(dendrogram,
 hc = hclust(d = dist(dataset, method = 'euclidean'), method = 'ward.D')
 y_hc = cutree(hc, 5)
 
+# Apriori ------------------------------------------------------------------------------------
+# Create a sparse matrix suitable for algo
+library(arules)
+dataset = read.transactions('data.csv', sep = ',', rm.duplicates = TRUE)
+summary(dataset)
+itemFrequencyPlot(dataset, topN = 10) # to choose thresholds (support, confidence)
+
+# Apriori
+# trial and error for (support,) confidence
+rules = apriori(data = dataset, parameter = list(support = 0.003, confidence = 0.8))
+inspect(sort(rules, by = 'lift')[1:10])
+
+# Eclat
+rules = eclat(data = dataset, parameter = list(support = 0.003, minlen = 2))
+inspect(sort(rules, by = 'support')[1:10])
+
+# Reinforcement Learning ---------------------------------------------------------------------
+# Upper Confidence Bound
+
+# Random to check performance
+# Implementing Random Selection
+# N = 10000
+# d = 10
+# ads_selected = integer(0)
+# total_reward = 0
+# for (n in 1:N) {
+#   ad = sample(1:10, 1)
+#   ads_selected = append(ads_selected, ad)
+#   reward = dataset[n, ad]
+#   total_reward = total_reward + reward
+# }
+
+# Implementing UCB
+N = 10000
+d = 10
+ads_selected = integer(0)
+numbers_of_selections = integer(d)
+sums_of_rewards = integer(d)
+total_reward = 0
+for (n in 1:N) {
+  ad = 0
+  max_upper_bound = 0
+  for (i in 1:d) {
+    if (numbers_of_selections[i] > 0) {
+      average_reward = sums_of_rewards[i] / numbers_of_selections[i]
+      delta_i = sqrt(3/2 * log(n) / numbers_of_selections[i])
+      upper_bound = average_reward + delta_i
+    } else {
+        upper_bound = 1e400
+    }
+    if (upper_bound > max_upper_bound) {
+      max_upper_bound = upper_bound
+      ad = i
+    }
+  }
+  ads_selected = append(ads_selected, ad)
+  numbers_of_selections[ad] = numbers_of_selections[ad] + 1
+  reward = dataset[n, ad]
+  sums_of_rewards[ad] = sums_of_rewards[ad] + reward
+  total_reward = total_reward + reward
+}
+
+# Visualising the results
+hist(ads_selected,
+     col = 'blue',
+     main = 'Histogram of ads selections',
+     xlab = 'Ads',
+     ylab = 'Number of times each ad was selected')
+
+# Implementing Thompson Sampling
+N = 10000
+d = 10
+ads_selected = integer(0)
+numbers_of_rewards_1 = integer(d)
+numbers_of_rewards_0 = integer(d)
+total_reward = 0
+for (n in 1:N) {
+  ad = 0
+  max_random = 0
+  for (i in 1:d) {
+    random_beta = rbeta(n = 1,
+                        shape1 = numbers_of_rewards_1[i] + 1,
+                        shape2 = numbers_of_rewards_0[i] + 1)
+    if (random_beta > max_random) {
+      max_random = random_beta
+      ad = i
+    }
+  }
+  ads_selected = append(ads_selected, ad)
+  reward = dataset[n, ad]
+  if (reward == 1) {
+    numbers_of_rewards_1[ad] = numbers_of_rewards_1[ad] + 1
+  } else {
+    numbers_of_rewards_0[ad] = numbers_of_rewards_0[ad] + 1
+  }
+  total_reward = total_reward + reward
+}
+
+# Natural Language Processing ----------------------------------------------------------------
+# Importing the dataset
+dataset_original = read.delim('Restaurant_Reviews.tsv', quote = '', stringsAsFactors = FALSE)
+
+# Cleaning the texts
+library(tm)
+library(SnowballC)
+corpus = VCorpus(VectorSource(dataset_original$Review))
+corpus = tm_map(corpus, content_transformer(tolower))
+corpus = tm_map(corpus, removeNumbers)
+corpus = tm_map(corpus, removePunctuation)
+corpus = tm_map(corpus, removeWords, stopwords())
+corpus = tm_map(corpus, stemDocument)
+corpus = tm_map(corpus, stripWhitespace)
+
+# Creating the Bag of Words model
+dtm = DocumentTermMatrix(corpus)
+dtm = removeSparseTerms(dtm, 0.999)
+dataset = as.data.frame(as.matrix(dtm))
+dataset$Liked = dataset_original$Liked
+
+# Encoding the target feature as factor
+# Splitting the dataset into the Training set and Test set
+# Fitting Random Forest Classification to the Training set
+# Predicting the Test set results
+# Making the Confusion Matrix
+
+# Deep Learning ------------------------------------------------------------------------------
+# Artificial Neural Network
+
+library(h2o)
+# All cores
+h2o.init(nthreads = -1)
+# h2o.shutdown()
+model = h2o.deeplearning(y = 'Exited',
+                         training_frame = as.h2o(training_set),
+                         activation = 'Rectifier',
+                         hidden = c(5,5),
+                         epochs = 100,
+                         train_samples_per_iteration = -2)
+
+# Applying Dimensionality Reduction ----------------------------------------------------------
+# PCA (unsupervised)
+# Needs Feature Scaling
+library(caret)
+library(e1071)
+pca = preProcess(x = training_set[-14], method = 'pca', pcaComp = 2)
+training_set = predict(pca, training_set)
+test_set = predict(pca, test_set)
+
+# LDA (supervised)
+library(MASS)
+lda = lda(formula = data$goal = .,
+          data = training_set) # max possible newcols = classes-1
+training_set = as.data.frame(predict(lda, training_set)) # convert matrix to data frame
+test_set = as.data.frame(predict(lda, test_set))
+
+# Kernel PCA (non-linearle seperable)
+library(kernlab)
+kpca = kpca(~., data = training_set[-3], kernel = 'rbfdot', features = 2)
+training_set_pca = as.data.frame(predict(kpca, training_set))
+training_set_pca$goal = training_set$goal
+
+# Model selection ------------------------------------------------------------------------
+# K-Fold Cross Validation
+library(caret)
+folds = createFolds(training_set$goal, k = 10)
+cv = lapply(folds, function(x) {
+  # Model, return accuracy
+  training_fold = training_set[-x, ]
+  test_fold = training_set[x, ]
+  classifier = svm(formula = Purchased ~ .,
+                   data = training_fold,
+                   type = 'C-classification',
+                   kernel = 'radial')
+  y_pred = predict(classifier, newdata = test_fold[-3])
+  cm = table(test_fold[, 3], y_pred)
+  accuracy = (cm[1,1] + cm[2,2]) / (cm[1,1] + cm[2,2] + cm[1,2] + cm[2,1])
+  return(accuracy)
+})
+accuracy = mean(as.numeric(cv))
+
+# Grid Search to find the best model and the best parameters
+library(caret)
+# caret takes care of Grid Search
+classifier = train(form = goal ~ ., data = training_set, method = 'svmRadial') #for SVM, refer caret documentation
+classifier
+classifier$bestTune
+
+# XG Boost-------------------------------------------------------------------------------------
+library(xgboost)
+classifier = xgboost(data = as.matrix(training_set[-11]), label = training_set$goal, nrounds = 10)
 
