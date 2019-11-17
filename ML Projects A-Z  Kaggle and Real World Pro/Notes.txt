@@ -1,0 +1,7 @@
+Teclov Project - Medical treatment
+View data and figure out what kind of problem it is
+Pre-Process
+Missing data (Impute, ...)
+Test Train Split
+Check that the split is good (impartial)
+Confusion matrix should have max diagonal values
