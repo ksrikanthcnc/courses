@@ -1,0 +1,23 @@
+View data and figure out what kind of problem it is
+Pre-Process
+Missing data (Impute, ...)
+Test Train Split
+Check that the split is good (impartial)
+    Log Loss (takes probability into account, not only the final class)
+    As log loss can go to infinity, use a random(worst case model) and compare with it
+Response encoding ???
+    Replace categorical with something possible based on converting target class into something
+    algo?
+        add <number of classes> cols
+        for each row
+            for each col add the val P(y=<col>|row[x])
+Laplace smoothing   (to deal with unknown data on test set)
+    apply [ (val + alpha) 
+                /
+            (N + (alpha * #classes)) ]
+Callibrated classifier
+
+# Logistic Regression works even for one hot encoding
+# Naive bayes, Random Forest, KNN need Response encoding (dimensionality)
+
+Balance impartial data fo logistic regression

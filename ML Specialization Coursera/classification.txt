@@ -1,0 +1,67 @@
+import some(maybe most) from "regression.txt"
+
+sort before stochastic gradient
+-------------------------------------------
+[Linear Classification]
+Regression but (> threshold) classifies it into a class,...
+Use functions to sale regression into 0-1   [sigmoid]
+
+Categorical variable needs to be Encoded    [OneHot Encoding]
+Multi class can be simulated by classifying each vs the rest
+
+Need to minimize loss(same as regression)
+
+Step size can be dynamic
+
+[Desicion Tree]
+Error = incorrect / total
+Minimize Error
+Split node based on feature which splits best    [max seperation of classes, purity should increase]
+For continuous data feature, split continuum at best point
+(Complexity is the depth)
+
+[Over fitting]
+Early stopping  
+    set a max depth
+    threshold for error; if error doesnt get better, no point in proceeding
+    if node already has few points 
+Pruning
+    Penalize complexity with number of leaves
+
+[Missing data]
+Skipping
+Imputing    [replacing with mean,...]
+Set default for node
+
+[Boosting]
+Simple model => low bias, high variance
+Each model can do its part in classifying. Series of models; Fast not-omplex
+Next model handles what current performed poorly
+Assign weights to data points which current performed poorly
+(Ensemble)
+Adaboost
+    W_err = (wt*mistake) / (wts)
+    0.5*ln((1-W_err) / W_err)
+    weigh data point more if current classifier made mistake, thus forcing next one to classify it properly
+    to avoid high weights, normalize after each iteration
+Instead of increasing depth, use more classifiers with adaboost, to reduce complexity and increase speed
+Bagging
+    Bag the dataset, learn on bags, avg outputs. Can be parallelled
+
+[Precision - Recall]
+Precision
+    How many caught are good
+    TP / (TP + FP)
+Recall
+    How many good are caught
+    TP / (TP + FN)
+AUC
+    precision(y) vs recall(x)
+
+[Scaling]
+Gradient Descent needs to iterate over all data points in each iteration
+Stochastic Gradient
+    Iterates different data point(usually new data point, NOT all)
+    Shuffle data
+    Average of last some coeffs, because last one if one of nearby random spike
+Gradient on batches of full dataset, hybrid of stochastic and normal gradient

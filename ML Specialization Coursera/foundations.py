@@ -6,6 +6,7 @@ graphlab.canvas.set_target()
 # 02_regression-predicting-house-prices
 sf = graphlab.SFrame("data.csv")
 sf.show()
+sf[sf[''] != '']
 sf[''].show(view='')
 sf.random_split()
 model=graphlab.linear_regression.create()

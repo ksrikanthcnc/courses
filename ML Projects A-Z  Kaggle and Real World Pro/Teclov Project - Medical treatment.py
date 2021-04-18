@@ -13,6 +13,8 @@ data_var.shape
 data_var.columns
 data_var.Class.unique()
 
+# Errors are costly here
+
 # Text Pre-Processing (NLTK)
 # Stop words
 # Numbers
@@ -29,24 +31,42 @@ result.loc[result[result.isnull(), 'TEXT'] = result['Gene'] + ' ' + result['Vari
 
 # Split into Training, Cross-Validation and Test sets
 # Check that the split is good (impartial)
-distribution = set['Class'].value_counts().sortlevel()
+distribution = df['Class'].value_counts().sortlevel()
 # Visualize, can also check %s
 distribution.plot(kind = 'bar')
-plt.grid()
 
 # Create a random returning model (worst case) for benchmarking
-argmax() # ceiling
+np.random.rand(1,9)
 
 # Results
 log_loss() # function to calculate error
 C = confusion_matrix(y_true, y_pred)
+# Confusion matrix should have max diagonal values
 sns.heatmap(C, annot=True, cmap='Y1GnBu', fmt=".3f")
+# For precision and recall too
 
 # Plots
-# Cumulative distribution
 unique_genes = train_df['Gene'].value_counts()
+# Cumulative distribution
 plt.plot(
     np.cumsum(
         unique_genes.values / sum(unique_genes.values)
     ))
+
 # Encoding (One-Hot, Response)
+# One - Hot
+vec = CountVectorizer()
+df_oh = vec.fit_transform(df['col'])
+df_oh.shape
+vec.get_feature_names()
+
+# Laplace
+clf = SGDClassifier(alpha=, penalti, loss)
+clf.fit(one_hot)
+sig_clf = CalibratedClassifierCV(clf, method="sigmoid")
+sig_clf.fit(one_hot)
+
+# Overlap; Tells the importance of column
+test_df[test_df['col'].isin(list(set(train_df['col'])))].shape[0]
+
+12 ?

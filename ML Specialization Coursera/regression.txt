@@ -1,0 +1,92 @@
+better start by mean-ing y to zero
+# Handle Outliers
+# Normalize both train and test
+-----------------------------------------------------
+Goodness of fit should be least for our line/curve
+Gradient descent helps to converge the co-efficients
+
+Input   Output      [simple imagination, 2D]
+House prices based on features (area, rooms, ...)
+f(x) best fits the data [any dimension; expected relation]
+error of a data point = distance from f(x)  [might be +ve or -ve]
+-----------------------------------------------------
+[Linear regression]
+f(x)    y = ax + b  [need to find a,b]
+RSS(Residual Sum of Squares)=(Y(i)-y(i))^2      [Y true, y predicted]
+Need to minimize RSS
+
+d/dx is +ve => climbing; -ve => falling
+For concave, convex we have one global optimum, with d/dx=0
+Non-con(cave/vex) might have 0 or more optimums
+Slope at a position tells the direction to move to approach optimum
+w(t+1)=w(t)+N(d/dx)     [N is step size; dont jump too far, dont go too slow]
+d/dx < Threshold    [stopping criterion]
+n Dimensions => use partial derivatives
+
+minimize RSS => get optimum
+RSS = [Y-(ax+b)]^2
+d/dx(RSS)=0 =>  gives two variables to solve for
+solve directly [computation intensive] or use gradient descent
+
+One extreme noise data point can influence this a lot
+Might need asymmetric models to fit the scenario/use-case
+-----------------------------------------------------
+[Multiple regression]
+y = ax1 + bx2 + ... + c
+y = ax + b can be converted as y = ax + bx^2 + ... c    [can also be sin/exp/... functions not only poly(square, cube) for seasonality case]
+Coefficients tell the feature's importance
+Y = H^X + C  [matrices] [^ is transpose]
+RSS = (y-Hw)^*(y-Hw)
+
+Invertible if N > D [linearly independent samples > number of features] to find direct solution
+Else Gradient descent   [Update weight after partially derivating]
+-----------------------------------------------------
+[Assess Performance]
+Loss function   [Abs error, sq error, ...]
+
+Training error is error when training set is applied
+Training error decreases as model becomes omplex(more dimensions)   [Over-fitting]
+
+Generalization error uses distribution(normal?)  [avg of loss, weighted by likeliness of its occurence in general population]
+Doesnt fall into pitfall of training error, but infeasible to calculate
+
+Test error is error for test set
+
+Overfitting is when training error decreases but test error increases
+
+Noise is inherent, because no data can show whole relation and dependency of output on Input
+Variance is that all data points cant form any model    [low complexity => low variance]
+Bias is difference between true function and average of functions we get    [Low complexity => High bias]
+Low complexity  =>  Low variance
+                    High bias
+High complexity =>  Low bias
+                    High variance
+Optimum where Bias, Variance trade of to find sweet spot (minimum error)
+
+Use validation set to quickly test trained model and to tweak parameters
+-----------------------------------------------------
+[Over fitting]
+As model becomes complex, it overfits
+So penalize complexity with lambda(L)   [L*W^2(Ridge regression); or L*W(Lasso)]
+
+Large L:    High bias   Low Variance
+Small L:    Low bias    High variance
+
+Tuning parameters by checking with cross-validation set
+
+[Subset feature set]
+One way is to add one by one feature and keep only the best combination [brute force]
+Or greedy approach [freeze current set and add new feature]     [top down or bottum up]
+
+Set a threshold and select only those features having weights more than threshold
+
+Gradient, sub-radient, coordinate descents
+
+6.3.1, 6.3.2, ... ? [Lasso]
+Lasso is sparse because it quickly reduces some coeffs to 0
+???
+-----------------------------------------------------
+[Non parametric]
+Nearest Neighbour
+b1NN sensitive to noise
+KNN, wighted KNN [kernels(guassian,...)]

@@ -257,8 +257,8 @@ var asyncfn = setTimeout(() => {
 const prom = new Promise((resolve, reject) => {
   setTimeout(args => {
     console.log(args);
-    if (success) resolve(result);
-    if (failed) reject(errorCode);
+    if (success) resolve(result);   //prom.then()(result) is called
+    if (failed) reject(errorCode);  //prom.catch()(errorCode) is called
   }, 2000);
 });
 const innerProm = innerArgs => {

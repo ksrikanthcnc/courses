@@ -1,0 +1,23 @@
+[Nearest Neighbour]
+1-NN, K-NN
+Value for doc
+    Bag of words (words-frequencies)
+    TF-IDF
+        emphasize freq in local(Term Freq), rare in global(Inverse Doc Freq)
+        IDF = log(#docs / 1 + #docs with word)
+        TF*IDF
+    Euclidean, cosine(for sparse) similarity
+    Normalize to not encourage frequency based on length of doc
+Distance calc
+    Brute force
+    KD-Tree
+        Build tree by splitting data into BST
+        Split on widest or alternate dimension
+        Split at median, center,...
+        Stop for threshold or width
+        K-NN => maintain kth distanced node
+
+2.4.6
+    
+
+map-reduce?
