@@ -1,0 +1,232 @@
+1. Getting Started
+	setup
+		JDK
+		spark
+			log4j.properties - loglevel
+			winutils
+		env
+			SPARK_HOME
+			JAVA_HOME
+			HADOOP_HOME
+	grouplens.org
+2. Scala Crash Course [Optional]
+	// Has java library support
+	// .sc file ?
+	val hello: String = "Hola!" // immutable
+	println(hello)
+	var v: String = "vvv"
+	f"string $val%0.3f"
+	s"str $var ${1+2}"
+	val pattern = """.* (\d)+""".r
+	pattern(MatchString) = SourceString
+	var.toInt
+
+	if () else {} //no elseif
+	<var> match {
+		case <match1> => println("")
+		case <match2> => ...
+		case _ => ...
+	}
+	for (x <- 1 to 4){...} //inclusive
+	while() {}
+	do {} while ()
+	println({val x = 10;x + 20}) // 30
+
+	def <fun>(x:Int) : Int = {} // no need to return, by default it returns last value
+	def tInt (x: Int, f: Int => Int): Int = { f(x) }
+	tInt(2, cubeFunction)
+	tInt(3, x => x*x*x*)
+	tInt(2, x => {val y = x*2; y*y})
+
+	(1,"a",3) // tuple, immutable
+	tuple._1 // indexing starts at 1; index with ._
+	val kv = "key" -> "val" // same as ("key","val")
+	var ls = List(1,2,3)
+	ls(0) // indexing starts at 0
+	ls.head // first element
+	ls.tail // except first element
+	for(ele <- ls) {println(ele)}
+	ls.map((ele: String) => {ele.reverse})
+	ls.reduce((x:Int, y:Int) => x+y) // 1,2,3,4->(((1+2)+3)+4)
+	ls.filter((x:Int)=>x!=5)
+	ls.filter(_ != 3)
+	ls1 ++ ls2 // concatenate lists
+		.reverse
+		.sorted
+		.distinct
+		.max
+		.sum
+		.contains(<ele>)
+	Map("k1"->"v1",...)
+		("k1") // to avoid exception while accessing unavailable K->V pair, use contains to test or util.Try(<map>(<key>)) getOrElse <defval>
+3. Spark Basics and Simple Examples
+	Architecture
+		Driver
+		Cluster Manager
+		Executer
+	Components
+		Spark streaming
+		Spark SQL
+		MLLib
+		GraphX
+	RDD
+		Fault tolerant
+		Transformations
+			map - RDD->new RDD based on map rules
+			flatmap - no need for one-to-one mapping
+			filter
+			distinct
+			sample
+			union, intersection, subtract, cartesian
+		Actions
+			collect
+			count
+			countByValue // ?for unique
+			take // peek
+			top
+			reduce
+			...
+	SampleCode
+		SparkContext()
+			.textFile()
+				.map()
+					.countByValue() // shuffle operation - costly
+						.toSeq.sortBy()
+	KeyValue RDD
+		rdd.map(x=>(x,1))
+			reduceByKey()
+				(x,y) => x+y // where x,y are keys' values, NOT k:x, v:y
+			groupByKey()
+			sortByKey()
+			keys(), values()
+			join, ...
+			mapValues()
+			flatMapvalues()
+
+			rdd.mapValues(x=>(x,1)).reduceByKey((x,y)=>(x._1+y._1,x._2+y._2))
+			mapValues(x=>x._1/x._2)
+	FlatMap
+		New row per element in list returned
+		Not only 1-1
+4. Advanced Examples of Spark Programs
+	Broadcast variables // available to all nodes
+		sc.broadcast(<var>) // manual; create rdd-map for automatic
+	def ...: Option[(Int,String)] = {}
+	rdd.lookup()
+	Accumulator // Static object ac
+	type BFSData = (Array[Int], Int, String) // custom data type
+	var movieMap:Map[Int, String] = Map()
+	rdd.join(rdd) // self-join
+	rdd.map().cache() // .persist()
+	val id:Int = args(0).toInt // cmd-line-arg
+	spark-submit --class <Java Class> <jar file>
+5. Running Spark on a Cluster
+	Check paths
+	Package to JAR
+	spark-submit -class <> --jars <> --files <> <main Jar>
+	SBT
+	SparkConf()
+		.setAppName("<>")
+	--master,--...
+	script > cmd > cfg
+	rdd.map().partitionBy(new HashPartitioner(100)) 
+		// before shuffling operations - Join(), cogroup(), groupWith(), groupByKey(), reduceByKey(), combineByKey(), lookup(), ...
+	debug
+		spark UI :4040
+		logs
+	for exceptions try
+		partitioning
+		allocating more memory
+		allocating more nodes 	
+6. SparkSQL, DataFrames, and DataSets
+	DataFrame - can run SQL cmds; ?set of DataSets, schema
+	DataSet
+	rdd.toDS()
+		.rdd()
+	SparkSession
+		.builder
+		.appname("<>")
+		.master("local[*]")
+		.config("","")
+		.getOrCreate()
+		
+		.sparkContext.textFile()
+			.map() // case class Person(ID:Int, name:String,...)
+				.toDS() // import spark.implicits._; Dataset
+					.printSchema()
+					.createOrReplaceTempView("tabname")
+
+					.select("col").show()
+					.filter(tab("col")>12)
+					.groupBy("col").count().show()
+					.select(tab("col")+10)
+		.sql("SELECT * FROM tabname")
+			.collect()
+		.stop()
+7. Machine Learning with MLLib
+	.cache()
+	Alternating least Squares
+		ALS.train() // rating - recommendations;
+	Linear Regression
+		SGD //needs feature-scaled
+		LabeledPoint.parse
+		LinearRegressionWithSGD()
+			.optimizer...
+			.run()
+				.predict()
+					.zip()
+		DataSets
+			SparkSession...
+			map(x => (x(0).toDouble, Vectors.dense(x(1)).toDoube)) // LabeledPoint.parse
+			colNames = Seq("col1", "col2")
+			rdd.toDF(colNames: _*)
+			LinearRegression()...
+				.fit(df)
+					.transform(testDF)
+						.select()...
+8. Intro to Spark Streaming
+	DStream - collection of RDDs
+	StreamingContext(cfg)
+		.socketTextStream() // dstream
+			.filter()
+
+		.start()
+		.awaitTermination()
+	dstream // windowed streaming
+		.window()
+		.reduceByWindow()
+		.reduceByKeyAndWindow(
+			(x,y) => x+y,
+			(x,y) => x-y,
+			Seconds(300), Seconds(1)
+		)
+
+		.updateStateByKey() // session
+	Structured Streaming
+		spark.readStream.json()
+			.groupBy($"aaction", window($"time", "1 hour")).count()
+				.writeStream.format("jdbc").start()
+9. Intro to GraphX
+	VertexRDD - (VertexID, String), EdgeRDD - (Edge[Int]), Edge
+	Graph(verts, edges, default).cache()
+		.degrees.join(verts)
+	Pregel algo - Walk through graph and run stuff (super step)
+		Receive msg, do stuff, send msg
+		initialGraph = graph.mapVertices((id,_) => if (id==root) 0.0 else Double.PositiveInfinity)
+		initialGraph.pregel(Double.PositiveInfinity,10){
+			// vprog
+			(id,attr,msg) => math.min(attr,msg),
+
+			// send msg
+			triplet => {
+				if (triplet.srcAttr != inf){
+					Iterator((triplet.dstId, triplet.srcAttr + 1))
+				} else{
+					Iterator.empty
+				}
+			},
+
+			// merge msg
+			(a,b) => math.min(a,b)
+		}
+10. You Made It! Where to Go from Here
